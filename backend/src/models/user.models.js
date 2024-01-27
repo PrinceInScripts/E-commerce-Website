@@ -30,6 +30,22 @@ const userSchema = new Schema({
         type:String,
         required:true,
     },
+    firstName:{
+        type:String,
+        default:"John"
+    },
+    lastName:{
+        type:String,
+        default:"Doe"
+    },
+    countryCode:{
+        type:String,
+        default:""
+    },
+    phoneNumber:{
+        type:String,
+        default:""
+    },
     loginType:{
         type:String,
         enum:AvailableUserLoginType,
