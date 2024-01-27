@@ -38,3 +38,4 @@ export const userLoginType={
 
 export const AvailableUserLoginType=Object.values(userLoginType)
 
+export const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
