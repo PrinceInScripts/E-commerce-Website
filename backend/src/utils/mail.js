@@ -1,11 +1,11 @@
-import Mialgen from "mailgen"
+import Mailgen from "mailgen"
 import nodemailer from "nodemailer"
 
 const sendEmail = async (options)=>{
-    const mailGenerator = new Mialgen({
+    const mailGenerator = new Mailgen({
         theme:"default",
         product:{
-            name:"Mailgen",
+            name:"E-commerce",
             link:process.env.FRONTEND_URL
         }
     })
@@ -13,18 +13,17 @@ const sendEmail = async (options)=>{
     const emailTextual=mailGenerator.generatePlaintext(options.mailgenContent)
 
     const emailHTML=mailGenerator.generate(options.mailgenContent)  
-
     const transporter = nodemailer.createTransport({
         host:process.env.SMTP_HOST,
         port:process.env.SMTP_PORT,
         auth:{
-            user:process.env.SMTP_USER,
+            user:process.env.SMTP_USERNAME,
             pass:process.env.SMTP_PASSWORD
         }
     })
 
     const mail={
-        from: process.env.SMTP_FROM,
+        from: process.env.SMTP_FROM_EMAIL,
         to:options.email,
         subject:options.subject,
         text:emailTextual,
