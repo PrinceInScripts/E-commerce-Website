@@ -1,9 +1,9 @@
-import {asyncHandler} from "../utlis/asyncHandler.js"
-import { ApiError } from "../utlis/ApiError.js"
-import {ApiResponse} from "../utlis/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+import { ApiError } from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
 import {User} from "../models/user.models.js"
 import {userRolesEnum} from "../constant.js"
-import {emailVerificationMailgenContent, sendEmail} from "../utlis/mail.js"
+import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js"
 
 const registerUser=asyncHandler(async(req,res)=>{
     const {username,email,password,role}=req.body
