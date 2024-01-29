@@ -5,6 +5,7 @@ import {User} from "../models/user.models.js"
 import {userLoginType, userRolesEnum} from "../constant.js"
 import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js"
 import crypto from "crypto"
+import jwt from 'jsonwebtoken'
 
 const generateAccessAndRefreshTokens=async (userId)=>{
     try {
@@ -229,6 +230,48 @@ const resendEmailVerification=asyncHandler(async (req,res)=>{
             .json(new ApiResponse(200, {}, "Mail has been sent to your mail ID"));
 })
 
+const refreshAccessToken=asyncHandler(async(req,res)=>{
+    const inComingRefreshToken=req.cookies.refreshToken || req.body.refreshToken
+
+    if(!inComingRefreshToken){
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    try {
+        const decodedToken=await jwt.verify(inComingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
+        const user=await User.findById(decodedToken?._id)
+
+        if(!user){
+            throw new ApiError(401,"Invalid refresh token")
+        }
+
+        if(inComingRefreshToken !== user?.refreshToken){
+            throw new ApiError(401,"Refresh token is expired or used")
+        }
+
+        const options={
+            httpOnly:true,
+            // secure: process.env.NODE_ENV === "production",
+            secure:true
+        }
+
+        const {accessToken,refreshToken:newRefreshToken}=await generateAccessAndRefreshTokens(user._id)
+
+        return res
+                  .status(200)
+                  .cookie("accessToken",accessToken,options)
+                  .cookie("refreshToken",newRefreshToken,options)
+                  .json(
+                    new ApiResponse(
+                        200,
+                        {accessToken,refreshToken:newRefreshToken},
+                        "Access token refreshed"
+                    )
+                  )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token");
+    }
+})
 
 
 
@@ -237,5 +280,6 @@ export {
     loginInUser,
     logoutUser,
     verifyEmail,
-    resendEmailVerification
+    resendEmailVerification,
+    refreshAccessToken
 }
