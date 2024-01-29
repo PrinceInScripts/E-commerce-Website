@@ -14,10 +14,18 @@ const uploadOnCloudinary = async (localFilePath) => {
         const response=await cloudinary.uploader.upload(localFilePath,{
             resource_type:"auto"
         })
-        fs.unlinkSync(localFilePath)
+        fs.unlink(localFilePath, (unlinkErr) => {
+            if (unlinkErr) {
+                console.error(`Error deleting file: ${unlinkErr.message}`);
+            }
+        });
         return response;
     } catch (error) {
-        fs.unlinkSync(localFilePath)
+        fs.unlink(localFilePath, (unlinkErr) => {
+            if (unlinkErr) {
+                console.error(`Error deleting file: ${unlinkErr.message}`);
+            }
+        });
         return null;
     }
 }

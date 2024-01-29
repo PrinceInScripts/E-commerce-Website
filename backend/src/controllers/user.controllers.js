@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {User} from "../models/user.models.js"
 import {userLoginType, userRolesEnum} from "../constant.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js"
 import crypto from "crypto"
 import jwt from 'jsonwebtoken'
@@ -402,6 +403,40 @@ const handlerSocialLogin=asyncHandler(async(req,res)=>{
 
 })
 
+const updateUserAvatar=asyncHandler(async(req,res)=>{
+    const avatarLocalPath=req.file?.path
+
+    if(!avatarLocalPath){
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const avatar=await uploadOnCloudinary(avatarLocalPath)
+   
+    if(!avatar){
+        throw new ApiError(400,"Error while uploading on avatar")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,{
+            $set:{
+                avatar:avatar?.url
+            }
+        },
+        {new:true}
+    ).select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry")
+
+    return res
+             .status(200)
+             .json(
+                new ApiResponse(
+                    200,
+                    user,
+                    "User avatar successfully"
+                )
+             )
+    
+})
+
 export {
     registerUser,
     loginInUser,
@@ -414,5 +449,6 @@ export {
     changeCurrentPassword ,
     assignRole,
     getCurrentUser,
-    handlerSocialLogin
+    handlerSocialLogin,
+    updateUserAvatar
 }
