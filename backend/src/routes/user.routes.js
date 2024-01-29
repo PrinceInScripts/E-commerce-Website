@@ -1,4 +1,5 @@
 import { Router } from "express";
+import passport from "passport";
 import { assignRole, changeCurrentPassword, forgotPassword, getCurrentUser, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, updateUserAvatar, verifyEmail } from "../controllers/user.controllers.js";
 import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator } from "../validators/user.validators.js"
 import { validate } from "../validators/validate.js";
@@ -26,6 +27,17 @@ router.route("/resend-email-verification").post(verifyJWT,resendEmailVerificatio
 router.route("/change-password").post(verifyJWT,userChangeCurrentPasswordValidator(),validate,changeCurrentPassword)
 router.route("/assign-role/:userId").post(verifyJWT,verifyPermission([userRolesEnum.ADMIN]),mongoIdPathVariableValidator("userId"),userAssignRoleValidator(),validate,assignRole)
 
+router.route("/google").get(
+    passport.authenticate('google',{scope:["profile","email"]}),
+    (req,res)=>{res.send("redirecting to google....")}
+)
 
+router.route("/github").get(
+    passport.authenticate('github',{scope:["profile","email"]}),
+    (req,res)=>{res.send("redirecting to github....")}
+)
+
+router.route("/google/callback").get(passport.authenticate("google"))
+router.route("/github/callback").get(passport.authenticate("github"))
 
 export default router;
