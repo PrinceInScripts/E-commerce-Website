@@ -1,5 +1,6 @@
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { User } from "../models/user.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
@@ -13,7 +14,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
   try {
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const user = await User.findById(decodedToken.id).select(
+    const user = await User.findById(decodedToken?._id).select(
       "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
     );
 
@@ -46,29 +47,27 @@ export const getLoggedInUserOrIgnore = asyncHandler(async (req, res, next) => {
   }
 });
 
-export const verifyPermission=(roles=[])=>{
-    asyncHandler(async(req,res,next)=>{ 
-        if(!req.user?._id){
-            throw new ApiError(401,"Unauthorized request");
-        }
+export const verifyPermission = (roles = []) => {
+  asyncHandler(async (req, res, next) => {
+    if (!req.user?._id) {
+      throw new ApiError(401, "Unauthorized request");
+    }
 
-        if(roles.includes(req.user?.role)){
-            next()
-        }else {
-            throw new ApiError(403, "You are not allowed to perform this action");
-        }
-
-        
-    })
-}
-
-export const avoidInProduction = asyncHandler(async (req, res, next) => {
-    if (process.env.NODE_ENV === "development") {
+    if (roles.includes(req.user?.role)) {
       next();
     } else {
-      throw new ApiError(
-        403,
-        "This service is only available in the local environment. For more details visit: https://github.com/hiteshchoudhary/apihub/#readme"
-      );
+      throw new ApiError(403, "You are not allowed to perform this action");
     }
   });
+};
+
+export const avoidInProduction = asyncHandler(async (req, res, next) => {
+  if (process.env.NODE_ENV === "development") {
+    next();
+  } else {
+    throw new ApiError(
+      403,
+      "This service is only available in the local environment. For more details visit: https://github.com/hiteshchoudhary/apihub/#readme"
+    );
+  }
+});
