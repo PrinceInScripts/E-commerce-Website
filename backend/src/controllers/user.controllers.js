@@ -4,7 +4,7 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {User} from "../models/user.models.js"
 import {userLoginType, userRolesEnum} from "../constant.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
-import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js"
+import {emailVerificationMailgenContent, forgotPasswordMailgenContent, sendEmail} from "../utils/mail.js"
 import crypto from "crypto"
 import jwt from 'jsonwebtoken'
 
@@ -292,7 +292,7 @@ const forgotPassword=asyncHandler(async(req,res)=>{
    await sendEmail({ 
      email:user?.email,
      subject:"Reset your password",
-     mailgenContent:emailVerificationMailgenContent(
+     mailgenContent: forgotPasswordMailgenContent(
         user.username,
         `${req.protocol}://${req.get(
         "host"
