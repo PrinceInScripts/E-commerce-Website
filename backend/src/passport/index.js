@@ -1,9 +1,9 @@
 import passport from "passport";
 import {Strategy as GoogleStrategy} from "passport-google-oauth20";
 import {Strategy as GithubStrategy} from "passport-github2"
-import { userLoginType, userRolesEnum } from "../constant";
-import { User } from "../models/user.models";
-import { ApiError } from "../utils/ApiError";
+import { userLoginType, userRolesEnum } from "../constant.js";
+import { User } from "../models/user.models.js";
+import { ApiError } from "../utils/ApiError.js";
 
 
 try {
@@ -35,7 +35,7 @@ try {
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                 callbackURL: process.env.GOOGLE_CALLBACK_URL,
             },
-            async (_,_,profile,next)=>{
+            async (_, __, profile, next) => {
                 const user=await User.findOne({email:profile.emails[0].value})
                 if(user){
                     if(user.loginType !== userLoginType.GOOGLE){
@@ -83,7 +83,7 @@ try {
             async (_, __, profile, next) => {
                 const user = await User.findOne({ email: profile._json.email });
                 if (user) {
-                  if (user.loginType !== UserLoginType.GITHUB) {
+                  if (user.loginType !== userLoginType.GITHUB) {
                     
                     next(
                       new ApiError(

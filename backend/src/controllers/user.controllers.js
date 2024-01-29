@@ -477,6 +477,34 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
     
 })
 
+const updateProfile=asyncHandler(async(req,res)=>{
+    const {firstName,lastName,countryCode,phoneNumber}=req.body;
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                firstName,
+                lastName,
+                countryCode,
+                phoneNumber
+            }
+        },
+        {
+            new:true,
+        }
+    )
+
+    return res.
+              status(200)
+              .json(
+                new ApiResponse(
+                    200,
+                    user,
+                    "User profile updated successfully"
+                )
+              )
+})
+
 export {
     registerUser,
     loginInUser,
@@ -490,5 +518,6 @@ export {
     assignRole,
     getCurrentUser,
     handlerSocialLogin,
-    updateUserAvatar
+    updateUserAvatar,
+    updateProfile
 }

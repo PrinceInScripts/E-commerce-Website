@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
-import { assignRole, changeCurrentPassword, forgotPassword, getCurrentUser, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, updateUserAvatar, verifyEmail } from "../controllers/user.controllers.js";
-import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator } from "../validators/user.validators.js"
+import { assignRole, changeCurrentPassword, forgotPassword, getCurrentUser, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, updateProfile, updateUserAvatar, verifyEmail } from "../controllers/user.controllers.js";
+import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator, userUpdateValidator } from "../validators/user.validators.js"
 import { validate } from "../validators/validate.js";
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js";
 import "../passport/index.js"
@@ -26,6 +26,7 @@ router.route("/avatar").post(verifyJWT,upload.single('avatar'),updateUserAvatar)
 router.route("/current-user").post(verifyJWT,getCurrentUser)
 router.route("/resend-email-verification").post(verifyJWT,resendEmailVerification)
 router.route("/change-password").post(verifyJWT,userChangeCurrentPasswordValidator(),validate,changeCurrentPassword)
+router.route("/update-profile").post(verifyJWT,userUpdateValidator(),validate,updateProfile)
 router.route("/assign-role/:userId").post(verifyJWT,verifyPermission([userRolesEnum.ADMIN]),mongoIdPathVariableValidator("userId"),userAssignRoleValidator(),validate,assignRole)
 
 router.route("/google").get(
