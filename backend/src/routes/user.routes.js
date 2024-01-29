@@ -4,6 +4,7 @@ import { assignRole, changeCurrentPassword, forgotPassword, getCurrentUser, logi
 import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator } from "../validators/user.validators.js"
 import { validate } from "../validators/validate.js";
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js";
+import "../passport/index.js"
 import { upload } from "../middlewares/multer.middlewares.js"
 import { userRolesEnum } from "../constant.js";
 import { mongoIdPathVariableValidator } from "../validators/mongodb.validators.js";

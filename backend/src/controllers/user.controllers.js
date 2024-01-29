@@ -8,6 +8,8 @@ import {emailVerificationMailgenContent, forgotPasswordMailgenContent, sendEmail
 import crypto from "crypto"
 import jwt from 'jsonwebtoken'
 
+// ++++++++++++++++++++++++++ generateAccessAndRefreshToken ++++++++++++++++++++++++++
+// This function generates the access token and refresh token for the user.
 const generateAccessAndRefreshTokens=async (userId)=>{
     try {
         const user=await User.findById(userId)
@@ -25,6 +27,20 @@ const generateAccessAndRefreshTokens=async (userId)=>{
     }
 }
 
+// ++++++++++++++++++++++++++ registerUser ++++++++++++++++++++++++++
+
+// This function registers a new user.
+// It takes in a request object, a response object, and a callback function.
+// It first checks if the request body contains a username, email, and password.
+// If not, it throws an error with a status code of 400 and a message saying "All fields are required".
+// It then checks if a user with the same username or email already exists in the database.
+// If so, it throws an error with a status code of 409 and a message saying "User already exists".
+// If not, it creates a new user with the provided username, email, and password.
+// It then generates a temporary token and a hashed token for the user's email verification.
+// It then sets the user's emailVerificationToken and emailVerificationExpiry properties to the hashed token and the token expiry date.
+// It then saves the user to the database.
+// It then sends an email to the user with a link to verify their email.
+// Finally, it returns a response with a status code of 201 and a message saying "Users registered successfully and verification email has been sent on your email."
 const registerUser=asyncHandler(async(req,res)=>{
     const {username,email,password,role}=req.body
 
@@ -85,6 +101,8 @@ const registerUser=asyncHandler(async(req,res)=>{
     
 })
 
+// ++++++++++++++++++++++++++ loginInUser ++++++++++++++++++++++++++
+// This function logs in a user.
 const loginInUser=asyncHandler(async(req,res)=>{
      const {email,username,password}=req.body
 
@@ -140,6 +158,9 @@ const loginInUser=asyncHandler(async(req,res)=>{
                )
 })
 
+
+// ++++++++++++++++++++++++++ logoutUser ++++++++++++++++++++++++++
+// This function logs out a user.
 const logoutUser=asyncHandler(async(req,res)=>{
       await User.findByIdAndUpdate(req.user._id,{
         $set:{
@@ -164,6 +185,8 @@ const logoutUser=asyncHandler(async(req,res)=>{
 
 })
 
+// ++++++++++++++++++++++++++ verifyEmail ++++++++++++++++++++++++++
+// This function verifies an email.
 const verifyEmail=asyncHandler(async(req,res)=>{
     const {verificationToken}=req.params;
 
@@ -196,6 +219,8 @@ const verifyEmail=asyncHandler(async(req,res)=>{
              .json(new ApiResponse(200, {isEmailVerified:true}, "Email verified successfully"));
 })
 
+// ++++++++++++++++++++++++++ resendEmailVerification ++++++++++++++++++++++++++
+// This function resends an email verification email to the user.
 const resendEmailVerification=asyncHandler(async (req,res)=>{
   
     const user=await User.findById(req.user?._id)
@@ -231,6 +256,8 @@ const resendEmailVerification=asyncHandler(async (req,res)=>{
             .json(new ApiResponse(200, {}, "Mail has been sent to your mail ID"));
 })
 
+// ++++++++++++++++++++++++++ refreshAccessToken ++++++++++++++++++++++++++
+// This function refreshes an access token for a user.
 const refreshAccessToken=asyncHandler(async(req,res)=>{
     const inComingRefreshToken=req.cookies.refreshToken || req.body.refreshToken
 
@@ -274,6 +301,8 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     }
 })
 
+// ++++++++++++++++++++++++++ forgotPassword ++++++++++++++++++++++++++
+// This function sends a password reset email to the user.
 const forgotPassword=asyncHandler(async(req,res)=>{
    const {email}=req.body
 
@@ -305,6 +334,8 @@ const forgotPassword=asyncHandler(async(req,res)=>{
             .json(new ApiResponse(200, {}, "Password reset mail has been sent on your mail id"));
 })
 
+// ++++++++++++++++++++++++++ resetForgotPassword ++++++++++++++++++++++++++
+// This function resets a password for a user.
 const resetForgotPassword=asyncHandler(async(req,res)=>{
     const {resetToken}=req.params
     const {newPassword}=req.body
@@ -331,6 +362,8 @@ const resetForgotPassword=asyncHandler(async(req,res)=>{
               .json(new ApiResponse(200, {}, "Password reset successfully"));
 })
 
+// ++++++++++++++++++++++++++ changeCurrentPassword ++++++++++++++++++++++++++
+// This function changes a current password for a user.
 const changeCurrentPassword =asyncHandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body    
     
@@ -351,6 +384,8 @@ const changeCurrentPassword =asyncHandler(async(req,res)=>{
 
 })
 
+// ++++++++++++++++++++++++++ assignRole ++++++++++++++++++++++++++
+// This function assigns a role to a user.
 const assignRole=asyncHandler(async(req,res)=>{ 
     const {userId}=req.params;
     const {role}=req.body
@@ -371,12 +406,15 @@ const assignRole=asyncHandler(async(req,res)=>{
 
 })
 
+// ++++++++++++++++++++++++++ getCurrentUser ++++++++++++++++++++++++++
 const getCurrentUser=asyncHandler(async(req,res)=>{
     return res
               .status(200)
               .json(new ApiResponse(200, req.user, "User fetched successfully"));
 })
 
+// ++++++++++++++++++++++++++ handlerSocialLogin ++++++++++++++++++++++++++
+// This function handles social login.
 const handlerSocialLogin=asyncHandler(async(req,res)=>{
     const user=await User.findById(req.user?._id)
 
@@ -403,6 +441,8 @@ const handlerSocialLogin=asyncHandler(async(req,res)=>{
 
 })
 
+// ++++++++++++++++++++++++++ updateUserAvatar ++++++++++++++++++++++++++
+// This function updates a user's avatar.
 const updateUserAvatar=asyncHandler(async(req,res)=>{
     const avatarLocalPath=req.file?.path
 
