@@ -370,6 +370,38 @@ const assignRole=asyncHandler(async(req,res)=>{
 
 })
 
+const getCurrentUser=asyncHandler(async(req,res)=>{
+    return res
+              .status(200)
+              .json(new ApiResponse(200, req.user, "User fetched successfully"));
+})
+
+const handlerSocialLogin=asyncHandler(async(req,res)=>{
+    const user=await User.findById(req.user?._id)
+
+    if(!user){
+        throw new ApiError(400,"User does not exists")
+    }
+
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id)
+
+    const options={
+        httpOnly:true,
+        secure:true
+        // secure: process.env.NODE_ENV === "production",
+     }
+    
+     return res
+              .status(301)
+              .cookie("accessToken",accessToken,options)
+              .cookie("refreshToken",refreshToken,options)
+              .redirect(
+                `${process.env.CLIENT_SSO_REDIRECT_URL}?accessToken=${accessToken}&refreshToken=${refreshToken}`
+              )
+    
+
+})
+
 export {
     registerUser,
     loginInUser,
@@ -380,5 +412,7 @@ export {
     forgotPassword,
     resetForgotPassword,
     changeCurrentPassword ,
-    assignRole
+    assignRole,
+    getCurrentUser,
+    handlerSocialLogin
 }
