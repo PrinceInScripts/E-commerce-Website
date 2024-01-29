@@ -350,7 +350,25 @@ const changeCurrentPassword =asyncHandler(async(req,res)=>{
 
 })
 
+const assignRole=asyncHandler(async(req,res)=>{ 
+    const {userId}=req.params;
+    const {role}=req.body
+    const user=await User.findById(userId)
 
+    if(!user){
+        throw new ApiError(400,"User does not exists")
+    }
+
+    user.role=role;
+    await user.save({validateBeforeSave:false})
+
+    return res
+              .status(200)
+              .json(new ApiResponse(200, {}, "Role chnaged for the user")); 
+    
+  
+
+})
 
 export {
     registerUser,
@@ -361,5 +379,6 @@ export {
     refreshAccessToken,
     forgotPassword,
     resetForgotPassword,
-    changeCurrentPassword 
+    changeCurrentPassword ,
+    assignRole
 }

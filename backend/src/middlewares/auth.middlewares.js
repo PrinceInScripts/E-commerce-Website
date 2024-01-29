@@ -47,7 +47,7 @@ export const getLoggedInUserOrIgnore = asyncHandler(async (req, res, next) => {
   }
 });
 
-export const verifyPermission = (roles = []) => {
+export const verifyPermission = (roles = []) => 
   asyncHandler(async (req, res, next) => {
     if (!req.user?._id) {
       throw new ApiError(401, "Unauthorized request");
@@ -59,7 +59,7 @@ export const verifyPermission = (roles = []) => {
       throw new ApiError(403, "You are not allowed to perform this action");
     }
   });
-};
+
 
 export const avoidInProduction = asyncHandler(async (req, res, next) => {
   if (process.env.NODE_ENV === "development") {

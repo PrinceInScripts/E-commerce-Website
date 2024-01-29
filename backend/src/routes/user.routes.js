@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { changeCurrentPassword, forgotPassword, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, verifyEmail } from "../controllers/user.controllers.js";
-import { userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator } from "../validators/user.validators.js"
+import { assignRole, changeCurrentPassword, forgotPassword, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, verifyEmail } from "../controllers/user.controllers.js";
+import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator } from "../validators/user.validators.js"
 import { validate } from "../validators/validate.js";
-import { verifyJWT } from "../middlewares/auth.middlewares.js";
+import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js";
+import { userRolesEnum } from "../constant.js";
+import { mongoIdPathVariableValidator } from "../validators/mongodb.validators.js";
 
 
 const router=Router();
@@ -19,6 +21,7 @@ router.route("/reset-password/:resetToken").post(userResetForgottenPasswordValid
 router.route("/logout").post(verifyJWT,logoutUser)
 router.route("/resend-email-verification").post(verifyJWT,resendEmailVerification)
 router.route("/change-password").post(verifyJWT,userChangeCurrentPasswordValidator(),validate,changeCurrentPassword)
+router.route("/assign-role/:userId").post(verifyJWT,verifyPermission([userRolesEnum.ADMIN]),mongoIdPathVariableValidator("userId"),userAssignRoleValidator(),validate,assignRole)
 
 
 
