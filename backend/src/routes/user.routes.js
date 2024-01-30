@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
 import { assignRole, changeCurrentPassword, forgotPassword, getCurrentUser, loginInUser, logoutUser, refreshAccessToken, registerUser, resendEmailVerification, resetForgotPassword, updateProfile, updateUserAvatar, verifyEmail } from "../controllers/user.controllers.js";
-import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator, userUpdateValidator } from "../validators/user.validators.js"
+import { userAssignRoleValidator, userChangeCurrentPasswordValidator, userForgotPasswordValidator, userLoginValidator, userRegisterValidator, userResetForgottenPasswordValidator, userUpdateValidator } from "../validators/app/user.validators.js"
 import { validate } from "../validators/validate.js";
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js";
 import "../passport/index.js"

@@ -4,7 +4,7 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
 
 const addressSchema = new Schema(
   {
-    adressLine1: {
+    addressLine1: {
       type: String,
       required: true,
     },
