@@ -96,10 +96,51 @@ const getAddressById=asyncHandler(async(req,res)=>{
             )
 })
 
+const updateAddress=asyncHandler(async(req,res)=>{
+    const {addressId}=req.params;
+    const owner=req.user._id;
+
+    const { addressLine1, addressLine2, pincode, city, state, country } = req.body;
+    const address=await Address.findOneAndUpdate(
+        {
+            _id:addressId,
+            owner
+        },
+        {
+            $set:{
+                addressLine1,
+                addressLine2,
+                pincode,
+                city,
+                state,
+                country
+            }
+        },
+        {
+            new:true,
+        }
+    )
+
+    if(!address){
+        throw new ApiError(404, "Address not found")
+    }
+
+    return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    address,
+                    "Address updated succesffully"
+                )
+            )
+})
+
 
 
 export {
     createAddress,
     getAllAddress,
-    getAddressById
+    getAddressById,
+    updateAddress
 }
