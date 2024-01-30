@@ -5,7 +5,7 @@ export const mongoIdPathVariableValidator = (idName)=>{
         param(idName)
                    .notEmpty()
                    .isMongoId()
-                   .withMessage(`${idName} is not valid mongoId`)
+                   .withMessage(`Invalid ${idName}`)
     ]
 }
 
@@ -14,6 +14,6 @@ export const mongoIdRequestBodyValidator = (idName)=>{
         body(idName)
                     .notEmpty()
                     .isMongoId()
-                    .withMessage(`${idName} is not valid mongoId`)
+                    .withMessage(`Invalid ${idName}`)
     ]
 }
