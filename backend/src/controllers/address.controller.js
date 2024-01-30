@@ -12,13 +12,7 @@ const createAddress=asyncHandler(async(req,res)=>{
     const existingAddress=await Address.findOne({owner})    
 
     if(existingAddress){
-        return res.status(400).json(
-            new ApiResponse(
-              400,
-              null,
-              "User already has an address. To update the address, use the update endpoint."
-            )
-          );
+       throw new ApiError(400,"Address already exists")
     }
  
     const address=await Address.create({
