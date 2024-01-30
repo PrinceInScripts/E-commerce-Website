@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { ApiError } from "../utils/ApiError.js"
 import { getMongoosePaginationOptions } from "../utils/helpers.js"
 
+// ++++++++++++++++++++++++++ createAddress ++++++++++++++++++++++++++
 const createAddress=asyncHandler(async(req,res)=>{
     const {addressLine1,addressLine2,city,state,country,pincode}=req.body
     const owner=req.user._id;
@@ -39,6 +40,7 @@ const createAddress=asyncHandler(async(req,res)=>{
     )
 })
 
+// ++++++++++++++++++++++++++ getAllAddress ++++++++++++++++++++++++++
 const getAllAddress=asyncHandler(async(req,res)=>{
     const {page=1,limit=10}=req.query;
     const addressAggregation=Address.aggregate([
@@ -72,6 +74,7 @@ const getAllAddress=asyncHandler(async(req,res)=>{
               )
 })
 
+// ++++++++++++++++++++++++++ getAddressById ++++++++++++++++++++++++++
 const getAddressById=asyncHandler(async(req,res)=>{
     const {addressId}=req.params;
     const owner=req.user._id;
@@ -96,6 +99,7 @@ const getAddressById=asyncHandler(async(req,res)=>{
             )
 })
 
+// ++++++++++++++++++++++++++ updateAddress ++++++++++++++++++++++++++
 const updateAddress=asyncHandler(async(req,res)=>{
     const {addressId}=req.params;
     const owner=req.user._id;
@@ -136,11 +140,36 @@ const updateAddress=asyncHandler(async(req,res)=>{
             )
 })
 
+// ++++++++++++++++++++++++++ deleteAddress ++++++++++++++++++++++++++
+const deleteAddress=asyncHandler(async(req,res)=>{
+    const {addressId}=req.params;
+    const owner=req.user._id;
 
+    const address=await Address.findOneAndDelete({
+        _id:addressId,
+        owner
+    })
+
+    if(!address){
+        throw new ApiError(404, "Address not found")
+    }
+
+    return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    { deletedAddress: address },
+                    "Address deleted successfully"
+                )
+            )
+
+})
 
 export {
     createAddress,
     getAllAddress,
     getAddressById,
-    updateAddress
+    updateAddress,
+    deleteAddress
 }
