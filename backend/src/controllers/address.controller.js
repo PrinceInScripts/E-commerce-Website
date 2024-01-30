@@ -1,7 +1,7 @@
 import { Address } from "../models/address.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import {} from "../utils/ApiError.js"
+import { ApiError } from "../utils/ApiError.js"
 import { getMongoosePaginationOptions } from "../utils/helpers.js"
 
 const createAddress=asyncHandler(async(req,res)=>{
@@ -72,9 +72,34 @@ const getAllAddress=asyncHandler(async(req,res)=>{
               )
 })
 
+const getAddressById=asyncHandler(async(req,res)=>{
+    const {addressId}=req.params;
+    const owner=req.user._id;
+
+    const address=await Address.findOne({
+        _id:addressId,
+        owner
+    })
+
+    if(!address){
+        throw new ApiError(404, "Address not found")
+    }
+
+    return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    address,
+                    "Address fetched successfully"
+                )
+            )
+})
+
 
 
 export {
     createAddress,
-    getAllAddress
+    getAllAddress,
+    getAddressById
 }
