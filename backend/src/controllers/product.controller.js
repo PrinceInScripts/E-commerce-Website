@@ -165,8 +165,28 @@ const updateProduct=asyncHandler(async(req,res)=>{
     
 })
 
+const getProductById=asyncHandler(async(req,res)=>{
+    const {productId}=req.params;
+    const product=await Product.findById(productId);
+
+    if(!product){
+        throw new ApiError(404,"Product not found")
+    }
+
+    return res
+              .status(200)
+              .json(
+                new ApiResponse(
+                    200,
+                    product,
+                    "Product fetched successfully"
+                )
+              )
+})
+
 export {
     getAllProducts,
     createProduct,
-    updateProduct
+    updateProduct,
+    getProductById
 }

@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { createProduct, getAllProducts, updateProduct } from "../controllers/product.controller.js"
+import { createProduct, getAllProducts, getProductById, updateProduct } from "../controllers/product.controller.js"
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js"
 import { MAXIMUM_SUB_IMAGE_COUNT, userRolesEnum } from "../constant.js"
 import { createProductvalidator, updateProductValidator } from "../validators/app/product.validatos.js"
@@ -37,5 +37,6 @@ router.route("/:productId")
                     validate,
                     updateProduct
                 )
+                .get(mongoIdPathVariableValidator("productId"),validate,getProductById)
 
 export default router
