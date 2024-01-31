@@ -270,11 +270,34 @@ const removeProductSubImages=asyncHandler(async(req,res)=>{
              )
 })
 
+const deleteProduct=asyncHandler(async(req,res)=>{
+    const {productId}=req.params;
+
+    const product=await Product.findById(productId);
+
+    if(!product){
+        throw new ApiError(404,"Product not found")
+    }
+
+    const deleteProduct=await Product.findByIdAndDelete(productId)
+
+    return res
+             .status(200)
+             .json(
+                new ApiResponse(
+                    200,
+                    {"deleteProduct":deleteProduct},
+                    "delete product succesfully"
+                )
+             )
+})
+
 export {
     getAllProducts,
     createProduct,
     updateProduct,
     getProductById,
     getProductByCategory,
-    removeProductSubImages
+    removeProductSubImages,
+    deleteProduct
 }
