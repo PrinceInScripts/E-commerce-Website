@@ -6,7 +6,7 @@ import { getMongoosePaginationOptions } from "../utils/helpers.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { Product } from "../models/product.models.js";
 import { Category } from "../models/category.models.js";
-import { validationResult } from "express-validator";
+import { MAXIMUM_SUB_IMAGE_COUNT } from "../constant.js"
 
 
 const getAllProducts=asyncHandler(async(req,res)=>{
@@ -95,7 +95,78 @@ const createProduct=asyncHandler(async(req,res)=>{
               )
 })
 
+const updateProduct=asyncHandler(async(req,res)=>{
+    const {productId}=req.params;
+    const {name,description,price,category,stock}=req.body;
+
+    const product=await Product.findById(productId);
+
+    if(!product){
+        throw new ApiError(404,"Product not found")
+    }
+
+    let mainImage = req.files?.mainImage && req.files?.mainImage.length
+    ? await uploadOnCloudinary(req.files?.mainImage[0]?.path)
+    : product.mainImage;
+
+    mainImage=req.files?.mainImage && req.files?.mainImage.length ? mainImage.url : product.mainImage;
+ 
+     let subImages = req.files?.subImages && req.files?.subImages.length
+        ? await Promise.all(req.files.subImages.map(async (image) => {
+            const imageLocalPath = image.path;
+            const imageUrl = await uploadOnCloudinary(imageLocalPath);
+            return imageUrl.url;
+        }))
+        : [];
+
+    const existedSubImages=product.subImages.length
+    const newSubImages=subImages.length
+    const totalSubImages=existedSubImages+newSubImages
+
+    if(totalSubImages>MAXIMUM_SUB_IMAGE_COUNT){
+        throw new ApiError(
+            400,
+            "Maximum " +
+              MAXIMUM_SUB_IMAGE_COUNT +
+              " sub images are allowed for a product. There are already " +
+              existedSubImages +
+              " sub images attached to the product."
+          );
+    }
+
+    subImages=[...product.subImages,...subImages]
+
+    const updateProduct =await Product.findByIdAndUpdate(
+        productId,
+        {
+            $set:{
+                name,
+                description,
+                stock,
+                price,
+                category,
+                mainImage,
+                subImages,
+            }
+        },
+        {new:true}
+        
+        )
+
+        return res
+                .status(200)
+                .json(
+                  new ApiResponse(
+                    200,
+                    updateProduct,
+                    "Product updated successfully"
+                   )
+                )
+    
+})
+
 export {
     getAllProducts,
-    createProduct
+    createProduct,
+    updateProduct
 }
