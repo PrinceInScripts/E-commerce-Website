@@ -49,34 +49,7 @@ const createCoupon=asyncHandler(async(req,res)=>{
              )
 })
 
-// const applyCoupon=asyncHandler(async(req,res)=>{
-//     const {couponCode}=req.body
 
-//     let aggregatedCoupon=await Coupon.aggregate([
-//         {
-//             $match:{
-//                 couponCode:couponCode.trim().toUpperCase(),
-//                 startDate:{$lte:new Date()},
-//                 expiryDate:{$gte:new Date()},
-//                 isActive:{
-//                     $eq:true
-//                 }
-//             }
-//         }
-//     ])
-
-//     const coupon=aggregatedCoupon[0]
-
-//     if(!coupon){
-//         throw new ApiError(
-//             404,
-//             "Invalid coupon code"
-//           );
-//     }
-
-
-// })
-
-// export {
-//     createCoupon
-// }
+export {
+    createCoupon
+}
