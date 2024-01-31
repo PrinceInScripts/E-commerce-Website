@@ -184,9 +184,51 @@ const getProductById=asyncHandler(async(req,res)=>{
               )
 })
 
+const getProductByCategory=asyncHandler(async(req,res)=>{
+    const {categoryId}=req.params;
+    const {page=1,limit=10}=req.query;
+
+    const category=await Category.findById(categoryId).select("name _id")
+
+    if(!category){
+        throw new ApiError(404,"Category not found")
+    }
+
+    const productAggregate=Product.aggregate([
+        {
+            $match:{
+                category:new mongoose.Types.ObjectId(categoryId)
+            }
+        }
+    ])
+
+    const product=await Product.aggregatePaginate(
+        productAggregate,
+        getMongoosePaginationOptions({
+            page,
+            limit,
+            customLabels:{
+                totalDocs:"totalProducts",
+                docs:"products",
+            }
+        })
+    )
+
+    return res
+              .status(200)
+              .json(
+                new ApiResponse(
+                    200,
+                    {...product,category},
+                    "Category products fetched successfully"
+                )    
+              )
+})
+
 export {
     getAllProducts,
     createProduct,
     updateProduct,
-    getProductById
+    getProductById,
+    getProductByCategory
 }
