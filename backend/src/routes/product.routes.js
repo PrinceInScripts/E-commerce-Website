@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { createProduct, getAllProducts, getProductByCategory, getProductById, updateProduct } from "../controllers/product.controller.js"
+import { createProduct, getAllProducts, getProductByCategory, getProductById, removeProductSubImages, updateProduct } from "../controllers/product.controller.js"
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js"
 import { MAXIMUM_SUB_IMAGE_COUNT, userRolesEnum } from "../constant.js"
 import { createProductvalidator, updateProductValidator } from "../validators/app/product.validatos.js"
@@ -42,5 +42,17 @@ router.route("/:productId")
 
     router.route("/category/:categoryId")
                 .get(mongoIdPathVariableValidator("categoryId"),validate,getProductByCategory)
+
+
+    
+    router.route("/remove/subimage/:productId/:subImageId")
+                .patch(
+                    verifyJWT,
+                    verifyPermission([userRolesEnum.ADMIN]),
+                    mongoIdPathVariableValidator("productId"),
+                    mongoIdPathVariableValidator("subImageId"),
+                    validate,
+                    removeProductSubImages
+                )
 
 export default router

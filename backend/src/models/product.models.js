@@ -31,14 +31,18 @@ const productSchema = new Schema({
             type:Number,
             default:0
         },
-        subImages:{
-            type:[
-                {
-                    type:String,
-                }
-            ],
-            default:[]
-        }
+        subImages: [
+            {
+                _id: {
+                    type: Schema.Types.ObjectId,
+                    default: mongoose.Types.ObjectId
+                },
+                imageUrl: {
+                    type: String,
+                    required: true
+                },
+            }
+        ]
 
 },{timestamps:true})
 

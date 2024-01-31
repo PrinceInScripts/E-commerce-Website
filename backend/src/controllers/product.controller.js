@@ -62,13 +62,16 @@ const createProduct=asyncHandler(async(req,res)=>{
         throw new ApiError(400,"Error while uploading on main image")
     }
 
-    const subImages = req.files?.subImages && req.files?.subImages?.length
-    ? await Promise.all(req.files?.subImages.map(async (image) => {
-        const imageLocalPath = image.path;
-        const imageUrl = await uploadOnCloudinary(imageLocalPath);
-        return imageUrl.url;
-    }))
-    : [];
+    const subImages = req.files?.subImages && req.files?.subImages.length
+        ? await Promise.all(req.files?.subImages.map(async (image) => {
+            const imageLocalPath = image.path;
+            const imageUrl = await uploadOnCloudinary(imageLocalPath);
+            return {
+                _id: new mongoose.Types.ObjectId(),
+                imageUrl: imageUrl.url,
+            };
+        }))
+        : [];
 
     const owner=req.user._id;
 
@@ -111,13 +114,17 @@ const updateProduct=asyncHandler(async(req,res)=>{
 
     mainImage=req.files?.mainImage && req.files?.mainImage.length ? mainImage.url : product.mainImage;
  
-     let subImages = req.files?.subImages && req.files?.subImages.length
-        ? await Promise.all(req.files.subImages.map(async (image) => {
-            const imageLocalPath = image.path;
-            const imageUrl = await uploadOnCloudinary(imageLocalPath);
-            return imageUrl.url;
-        }))
-        : [];
+    let subImages = req.files?.subImages && req.files?.subImages.length
+    ? await Promise.all(req.files.subImages.map(async (image) => {
+        const imageLocalPath = image.path;
+        const imageUrl = await uploadOnCloudinary(imageLocalPath);
+        return {
+            _id: new mongoose.Types.ObjectId(),
+            imageUrl: imageUrl.url,
+        };
+    }))
+    : [];
+
 
     const existedSubImages=product.subImages.length
     const newSubImages=subImages.length
@@ -225,10 +232,49 @@ const getProductByCategory=asyncHandler(async(req,res)=>{
               )
 })
 
+const removeProductSubImages=asyncHandler(async(req,res)=>{
+    const {productId,subImageId}=req.params;
+    
+
+    const product=await Product.findById(productId);
+    if(!product){
+        throw new ApiError(404,"Product not found")
+    }
+
+    const subImageRemove=product.subImages.find(image=>image._id.toString()===subImageId)
+
+    if(!subImageRemove){
+        throw new ApiError(404,"Sub image not found")
+    }
+
+    const updateProduct=await Product.findByIdAndUpdate(
+        productId,
+        {
+            $pull:{
+                subImages:{
+                    _id:new mongoose.Types.ObjectId(subImageId)
+                }
+            }
+        },
+        {new:true}
+    )
+
+    return res
+             .status(200)
+             .json(
+                new ApiResponse(
+                    200,
+                    updateProduct,
+                    "Sub image is removed Successfully"
+                )
+             )
+})
+
 export {
     getAllProducts,
     createProduct,
     updateProduct,
     getProductById,
-    getProductByCategory
+    getProductByCategory,
+    removeProductSubImages
 }
