@@ -274,6 +274,52 @@ const updateCoupon=asyncHandler(async (req, res)=>{
           .status(200)
           .json(new ApiResponse(200, coupon, "Coupon updated successfully"));
 })
+
+const updateCouponStatus=asyncHandler(async (req, res)=>{
+    const {isActive}=req.body;
+    const {couponId}=req.params;
+
+    const updatedCoupon=await Coupon.findByIdAndUpdate(
+        couponId,
+        {
+            $set:{
+                isActive
+            }
+        },
+        {
+            new:true,
+        }
+    )
+
+    if(!updatedCoupon){
+        throw new ApiError(404, "Coupon not found")
+    }
+
+    return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedCoupon,
+        `Coupon is ${updatedCoupon?.isActive ? "active" : "inactive"}`
+      )
+    );
+})
+
+const deleteCoupon = asyncHandler(async (req, res) => {
+    const { couponId } = req.params;
+  
+    const deletedCoupon = await Coupon.findByIdAndDelete(couponId);
+    if (!deletedCoupon) {
+      throw new ApiError(404, "Coupon does not exist");
+    }
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { deletedCoupon }, "Coupon deleted successfully")
+      );
+  });
+
 export {
      createCoupon,
      applyCoupon,
@@ -281,5 +327,7 @@ export {
      getAllCoupons,
      getValidCouponsForCustomer,
      getCouponById,
-     updateCoupon
+     updateCoupon,
+     updateCouponStatus,
+     deleteCoupon
      };
