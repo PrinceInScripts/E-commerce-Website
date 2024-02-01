@@ -1,8 +1,8 @@
 
 import { Cart } from "../models/cart.models.js";
 import {} from "../utils/ApiError.js"
-import {} from "../utils/ApiResponse.js"
-import {} from "../utils/asyncHandler.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 export const getCart=async (userId)=>{
     const cartAggregation=await Cart.aggregate([
@@ -78,4 +78,22 @@ export const getCart=async (userId)=>{
             discountedTotal:0,
         }
     )
+}
+
+const getUserCart=asyncHandler(async (req,res)=>{
+    let cart=await getCart(req.user._id);
+
+    return res
+           .status(200)
+           .json(
+            new ApiResponse(
+                200,
+                cart,
+                "Cart fetched successfully"
+            )
+           )
+})
+
+export {
+    getUserCart,
 }
