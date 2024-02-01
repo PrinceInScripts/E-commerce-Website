@@ -3,6 +3,7 @@ import crypto from "crypto"
 import jwt from "jsonwebtoken"
 import mongoose,{Schema} from "mongoose"
 import {AvailableUserLoginType, AvailableUserRoles,USER_TEMPORARY_TOKEN_EXPIRY,userLoginType,userRolesEnum} from "../constant.js"
+import { Cart } from "./cart.models.js"
 
 
 const userSchema = new Schema({
@@ -36,11 +37,11 @@ const userSchema = new Schema({
     },
     firstName:{
         type:String,
-        default:"John"
+        default:""
     },
     lastName:{
         type:String,
-        default:"Doe"
+        default:""
     },
     countryCode:{
         type:String,
@@ -82,6 +83,16 @@ userSchema.pre("save",async function(next){
     }
     this.password = await bcrypt.hash(this.password,10)
     next();
+})
+
+userSchema.post("save",async function(user,next){
+    const cart=await Cart.findOne({owner:user._id})
+
+    if(!cart){
+        await Cart.create({owner:user._id})
+        next()
+    }
+    
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
