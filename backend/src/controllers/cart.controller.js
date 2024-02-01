@@ -120,7 +120,7 @@ const addItemOrUpdateItemQuantity=asyncHandler(async (req,res)=>{
               : "Product is out of stock"
           );
     }
-
+   
     const addedProduct = cart.items?.find(
         (item) => item.productId.toString() === productId
       );
@@ -159,7 +159,70 @@ const addItemOrUpdateItemQuantity=asyncHandler(async (req,res)=>{
     
 })
 
+const removeItemFromCart=asyncHandler(async (req, res)=>{
+    const {productId}=req.params;
+
+    const product=await Product.findById(productId);
+
+    if(!product){
+        throw new ApiError(404, "Product not found");
+    }
+    
+    const updatedCart=await Cart.findOneAndUpdate(
+        {
+            owner:req.user._id,
+        },
+        {
+            $pull:{
+                items:{
+                    productId:productId
+                }
+            }
+        },
+        {new:true}
+        
+    )
+    let cart=await getCart(req.user._id);
+
+      // check if the cart's new total is greater than the minimum cart total requirement of the coupon
+  if (cart.coupon && cart.cartTotal < cart.coupon.minimumCartValue) {
+    // if it is less than minimum cart value remove the coupon code which is applied
+    updatedCart.coupon = null;
+    await updatedCart.save({ validateBeforeSave: false });
+    // fetch the latest updated cart
+    cart = await getCart(req.user._id);
+  }
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, cart, "Cart item removed successfully"));
+})
+
+const clearCart=asyncHandler(async (req, res)=>{
+    await Cart.findOneAndUpdate(
+        {
+            owner:req.user._id,
+        },
+        {
+            $set:{
+                items:[],
+                coupon:null,
+            }
+        },{
+            new:true,
+        }
+    )
+
+    const cart=await getCart(req.user._id);
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, cart, "Cart has been cleared"));
+})
+
 export {
     getUserCart,
-    addItemOrUpdateItemQuantity
+    addItemOrUpdateItemQuantity,
+    removeItemFromCart,
+    clearCart
 }
