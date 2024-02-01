@@ -159,9 +159,60 @@ const getAllCoupons = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, coupons, "Coupons fetched successfully"));
 })
 
+const getValidCouponsForCustomer=asyncHandler(async (req,res)=>{
+    const {page=1,limit=10}=req.query;  
+
+    const userCart=await getCart(req.user._id);
+    const cartTotal=userCart.cartTotal;
+    const couponsAggregate=Coupon.aggregate([
+        {
+            $match:{
+                startDate:{$lt:new Date()},
+                expiryDate:{$gt:new Date()},
+                isActive:{$eq:true},
+                minimumCartValue:{$lte:cartTotal}
+            }
+        }
+    ])
+
+    const coupons=await Coupon.aggregatePaginate(
+        couponsAggregate,
+        getMongoosePaginationOptions({
+            page,
+            limit,  
+            customLabels:{
+                totalDocs:"totalCoupons",
+                docs:"coupons"
+            }
+        })
+    )
+
+    return res
+    .status(200)
+    .json(
+      new ApiResponse(200, coupons, "Customer coupons fetched successfully")
+    );
+})
+
+const getCouponById=asyncHandler(async (req, res)=>{
+    const {couponId}=req.params;
+
+    const coupon=await Coupon.findById(couponId);
+
+    if(!coupon){
+        throw new ApiError(404,"Coupon not found")
+    }
+    return res
+    .status(200)
+    .json(new ApiResponse(200, coupon, "Coupon fetched successfully"));
+})
+
+
 export {
      createCoupon,
      applyCoupon,
      removeCouponFromCart,
      getAllCoupons,
+     getValidCouponsForCustomer,
+     getCouponById,
      };
