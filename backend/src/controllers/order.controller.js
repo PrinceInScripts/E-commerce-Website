@@ -1,4 +1,4 @@
-
+import crypto from "crypto"
 import { nanoid } from "nanoid"
 import Razorpay from "razorpay"
 import { PaymentProviderEnum, paypalBaseUrl } from "../constant.js"
@@ -199,6 +199,33 @@ const generateRazorpayOrder = asyncHandler(async (req, res) => {
     
 })
 
+const verifyRazorpayPayment=asyncHandler(async(req,res)=>{
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const body=razorpay_order_id + "|" + razorpay_payment_id;
+
+    let expectedSignature = crypto
+                                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+                                .update(body.toString())
+                                .digest("hex");
+
+    if(expectedSignature === razorpay_signature){
+        const order=await orderFulfillmentHelper(razorpay_payment_id,req);
+        return res
+                .status(200)
+                .json(
+                    new ApiResponse(200, order, "Order placed sucessfully")
+                )
+    } else {
+        throw new ApiError(400, "Invalid razorpay signature")
+    }
+
+
+})
+
+
+
 export {
-    generateRazorpayOrder
+    generateRazorpayOrder,
+    verifyRazorpayPayment,
 }

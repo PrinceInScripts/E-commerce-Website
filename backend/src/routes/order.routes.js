@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { validate } from "../validators/validate.js";
-import { generateRazorpayOrder } from "../controllers/order.controller.js";
+import { generateRazorpayOrder, verifyRazorpayPayment } from "../controllers/order.controller.js";
 import { mongoIdPathVariableValidator, mongoIdRequestBodyValidator } from "../validators/mongodb.validators.js";
+import { verifyRazorpayPaymentValidator } from "../validators/app/order.validators.js";
 
 
 const router = Router();
@@ -12,5 +13,6 @@ router.use(verifyJWT)
 router.route("/provider/razorpay")
                   .post(mongoIdRequestBodyValidator("addressId"),validate,generateRazorpayOrder)
 
-
+router.route("/provider/razorpay/verify-payment")
+                  .post(verifyRazorpayPaymentValidator(),validate,verifyRazorpayPayment)
 export default router;
