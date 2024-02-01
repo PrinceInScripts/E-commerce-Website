@@ -1,4 +1,5 @@
 
+import { Cart } from "../models/cart.models.js";
 import {} from "../utils/ApiError.js"
 import {} from "../utils/ApiResponse.js"
 import {} from "../utils/asyncHandler.js"
@@ -51,12 +52,12 @@ export const getCart=async (userId)=>{
             }
         },
         {
-            $addfields:{
+            $addFields:{
                 coupon:{$first:"$coupon"},
             }
         },
         {
-            $addfields:{
+            $addFields:{
                 discountedTotal:{
                     $ifNull:[
                         {

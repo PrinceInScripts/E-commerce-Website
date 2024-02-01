@@ -33,4 +33,4 @@ const cartSchema=new Schema({
 },{timestamps:true})
 
 
-export default Cart=mongoose.model("Cart",cartSchema)
+export const Cart=mongoose.model("Cart",cartSchema)
