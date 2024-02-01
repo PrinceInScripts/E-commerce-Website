@@ -1,12 +1,16 @@
 
+import { nanoid } from "nanoid"
 import Razorpay from "razorpay"
-import { paypalBaseUrl } from "../constant.js"
-import { Cart } from "../models/cart.models";
+import { PaymentProviderEnum, paypalBaseUrl } from "../constant.js"
+import { Cart } from "../models/cart.models.js";
 import { Order } from "../models/order.models.js";
 import { Product } from "../models/product.models.js";
-import { ApiError } from "../utils/ApiError";
-import { orderConfirmationMailgenContent, sendEmail } from "../utils/mail";
-import { getCart } from "./cart.controller";
+import { ApiError } from "../utils/ApiError.js";
+import { orderConfirmationMailgenContent, sendEmail } from "../utils/mail.js";
+import { getCart } from "./cart.controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Address } from "../models/address.models.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 
 //utility functions
@@ -111,3 +115,90 @@ try {
     console.error("RAZORPAY ERROR: ", error);
 }
 
+
+
+const generateRazorpayOrder = asyncHandler(async (req, res) => {
+    const {addressId}=req.body;
+
+    if(!razorpayInstance){
+        console.error("RAZORPAY ERROR: `key_id` is mandatory");
+        throw new ApiError(500, "Internal server error");
+    }
+
+    const address=await Address.findOne({
+        _id:addressId,
+        owner:req.user._id
+    })
+
+    if(!address){
+        throw new ApiError(400, "Address does not exists");
+    }
+
+    const cart=await Cart.findOne({
+        owner:req.user._id
+    })
+
+    if(!cart || !cart.items?.length){
+        throw new ApiError(400, "User Cart is empty");
+    }
+
+    const orderItems=cart.items;
+    const userCart=await getCart(req.user._id);
+
+    const totalPrice=userCart.cartTotal;
+    const totalDiscountedPrice = userCart.discountedTotal;
+    
+    const orderOptions={
+        amount: parseInt(totalDiscountedPrice)*100,
+        currency: "INR",
+        receipt: nanoid(10),
+    }
+
+    razorpayInstance.orders.create(
+        orderOptions,
+        async function (err,razorpayOrder){
+            if(!razorpayOrder || (err && error)){
+                return res
+                        .status(err.statusCode)
+                        .json(
+                            new ApiResponse(
+                                err.statusCode,
+                                null,
+                                err.error.message ||  "Something went wrong while initialising the razorpay order."
+                            )
+                        )
+            }
+
+            const unpaidOrder=await Order.create({
+                address:addressId,
+                customer:req.user._id,
+                items:orderItems,
+                orderPrice: totalPrice ?? 0,
+                discountedOrderPrice: totalDiscountedPrice ?? 0,
+                paymentProvider: PaymentProviderEnum.RAZORPAY,
+                paymentId: razorpayOrder.id,
+                coupon: userCart.coupon?._id,
+            });
+
+            if(unpaidOrder){
+                return res
+                         .status(200)
+                         .json(
+                            new ApiResponse(200,razorpayOrder,"Razorpay order generated")
+                         )
+            } else {
+                return res
+                         .status(500)
+                         .json(
+                            new ApiResponse(500, null, "Something went wrong while generating the order")
+                         )
+            }
+        }
+    )
+    
+    
+})
+
+export {
+    generateRazorpayOrder
+}

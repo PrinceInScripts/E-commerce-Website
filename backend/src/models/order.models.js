@@ -7,7 +7,7 @@ const orderSchema=new Schema({
         type:Number,
         required:true
     },
-    discountOrderPrice:{
+    discountedOrderPrice:{
         type:Number,
         required:true
     },

@@ -5,6 +5,7 @@ import categoriesRoute from "./category.routes.js"
 import productsRoute from "./product.routes.js"
 import couponsRoute from "./coupon.routes.js"
 import cartRoute from "./cart.routes.js"
+import orderRoute from "./order.routes.js"
 
 const router=Router()
 
@@ -14,6 +15,7 @@ router.use("/categories",categoriesRoute)
 router.use("/products", productsRoute)
 router.use("/coupons",couponsRoute)
 router.use("/carts",cartRoute)
+router.use("/orders",orderRoute)
 
 
 
