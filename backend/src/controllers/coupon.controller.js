@@ -5,6 +5,7 @@ import { CoupenTypeEnum } from "../constant.js";
 import { Coupon } from "../models/coupen.models.js";
 import { getCart } from "./cart.controller.js";
 import { Cart } from "../models/cart.models.js";
+import { getMongoosePaginationOptions } from "../utils/helpers.js"
 
 const createCoupon = asyncHandler(async (req, res) => {
   const {
@@ -135,8 +136,32 @@ const removeCouponFromCart = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, newCart, "Coupon removed successfully"));
 });
+
+const getAllCoupons = asyncHandler(async (req, res) => {
+    const {page=1,limit=10} = req.query;
+
+    const couponAggregate=Coupon.aggregate([{$match:{}}])
+
+    const coupons=await Coupon.aggregatePaginate(
+        couponAggregate,
+        getMongoosePaginationOptions({
+            page,
+            limit,
+            customLabels:{
+                totalDocs:"totalCoupons",
+                docs:"coupons"
+            }
+        })
+    )
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, coupons, "Coupons fetched successfully"));
+})
+
 export {
      createCoupon,
      applyCoupon,
-     removeCouponFromCart
+     removeCouponFromCart,
+     getAllCoupons,
      };

@@ -3,7 +3,7 @@ import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js"
 import { userRolesEnum } from "../constant.js"
 import { applyCouponCodeValidator, createCouponValidator } from "../validators/app/coupon.validators.js"
 import { validate } from "../validators/validate.js"
-import { applyCoupon, createCoupon, removeCouponFromCart } from "../controllers/coupon.controller.js"
+import { applyCoupon, createCoupon, getAllCoupons, removeCouponFromCart } from "../controllers/coupon.controller.js"
 
 const router=Router()
 
@@ -17,7 +17,9 @@ router.route("/c/remove")
 
 router.use(verifyPermission([userRolesEnum.ADMIN]))
 
+
 router.route("/")
+                .get(getAllCoupons)
                 .post(createCouponValidator(),validate,createCoupon)
 
                
