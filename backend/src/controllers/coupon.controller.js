@@ -6,6 +6,7 @@ import { Coupon } from "../models/coupen.models.js";
 import { getCart } from "./cart.controller.js";
 import { Cart } from "../models/cart.models.js";
 import { getMongoosePaginationOptions } from "../utils/helpers.js"
+import mongoose from "mongoose";
 
 const createCoupon = asyncHandler(async (req, res) => {
   const {
@@ -207,7 +208,72 @@ const getCouponById=asyncHandler(async (req, res)=>{
     .json(new ApiResponse(200, coupon, "Coupon fetched successfully"));
 })
 
+const updateCoupon=asyncHandler(async (req, res)=>{
+    const {couponId}=req.params;
+    const {
+        name,
+        couponCode,
+        type = CoupenTypeEnum.FLAT,
+        discountValue,
+        minimumCartValue,
+        startDate,
+        expiryDate,
+      } = req.body;
 
+      const couponToBeUpdated=await Coupon.findById(couponId);
+
+      if(!couponToBeUpdated){
+          throw new ApiError(404, "Coupon not found")
+      
+      }
+
+      const duplicateCoupon=await Coupon.aggregate([
+       {
+        $match:{
+            couponCode:couponCode?.trim().toUpperCase(),
+            _id: {
+                $ne: new mongoose.Types.ObjectId(couponToBeUpdated._id),
+              },
+        }
+       } 
+      ])
+
+      if(duplicateCoupon[0]){
+          throw new ApiError(409, "Coupon with code "+duplicateCoupon[0].couponCode+" already exists")
+      }
+      
+      // Variable to check if min cart value is greater than discount value
+        const _minimumCartValue =minimumCartValue || couponToBeUpdated.minimumCartValue;
+        const _discountValue = discountValue || couponToBeUpdated.discountValue;
+
+        if (_minimumCartValue && +_minimumCartValue < +_discountValue) {
+            throw new ApiError(
+            400,
+            "Minimum cart value must be greater than or equal to the discount value"
+            );
+        }
+
+        const coupon = await Coupon.findByIdAndUpdate(
+            couponId,
+            {
+              $set: {
+                name,
+                couponCode,
+                type,
+                discountValue: _discountValue,
+                minimumCartValue: _minimumCartValue,
+                startDate,
+                expiryDate,
+              },
+            },
+            { new: true }
+          );
+
+          
+          return res
+          .status(200)
+          .json(new ApiResponse(200, coupon, "Coupon updated successfully"));
+})
 export {
      createCoupon,
      applyCoupon,
@@ -215,4 +281,5 @@ export {
      getAllCoupons,
      getValidCouponsForCustomer,
      getCouponById,
+     updateCoupon
      };
