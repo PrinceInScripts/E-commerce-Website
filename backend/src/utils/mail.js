@@ -77,8 +77,44 @@ const forgotPasswordMailgenContent = (username,passwordResetUrl)=>{
     }
 }
 
+const orderConfirmationMailgenContent = (username, items, totalCost) => {
+    return {
+      body: {
+        name: username,
+        intro: "Your order has been processed successfully.",
+        table: {
+          data: items?.map((item) => {
+            return {
+              item: item.product?.name,
+              price: "INR " + item.product?.price + "/-",
+              quantity: item.quantity,
+            };
+          }),
+          columns: {
+            // Optionally, customize the column widths
+            customWidth: {
+              item: "20%",
+              price: "15%",
+              quantity: "15%",
+            },
+            // Optionally, change column text alignment
+            customAlignment: {
+              price: "right",
+              quantity: "right",
+            },
+          },
+        },
+        outro: [
+          `Total order cost: INR ${totalCost}/-`,
+          "You can check the status of your order and more in your order history",
+        ],
+      },
+    };
+  };
+
 export {
     sendEmail,
     emailVerificationMailgenContent,
-    forgotPasswordMailgenContent
+    forgotPasswordMailgenContent,
+    orderConfirmationMailgenContent
 }

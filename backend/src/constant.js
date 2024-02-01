@@ -40,3 +40,7 @@ export const AvailableUserLoginType=Object.values(userLoginType)
 
 export const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
 export const MAXIMUM_SUB_IMAGE_COUNT = 4;
+
+export const paypalBaseUrl = {
+    sandbox: "https://api-m.sandbox.paypal.com",
+  };
