@@ -7,6 +7,8 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import {emailVerificationMailgenContent, forgotPasswordMailgenContent, sendEmail} from "../utils/mail.js"
 import crypto from "crypto"
 import jwt from 'jsonwebtoken'
+import { Order } from "../models/order.models.js"
+import { getMongoosePaginationOptions } from "../utils/helpers.js"
 
 // ++++++++++++++++++++++++++ generateAccessAndRefreshToken ++++++++++++++++++++++++++
 // This function generates the access token and refresh token for the user.
@@ -505,6 +507,95 @@ const updateProfile=asyncHandler(async(req,res)=>{
               )
 })
 
+const getMyOrder=asyncHandler(async(req, res)=>{
+    const {page=1,limit=10}=req.query;
+    const orderAggregate=Order.aggregate([
+        {
+            $match:{
+                customer:req.user._id,
+            }
+        },
+        {
+            $lookup:{
+                from:"addresses",
+                localField:"address",
+                foreignField:"_id",
+                as:"address"
+            }
+        },
+        {
+            $lookup:{
+                from:"users",
+                localField:"customer",
+                foreignField:"_id",
+                as:"customer",
+                pipeline:[
+                    {
+                        $project:{
+                            _id:1,
+                            username:1,
+                            email:1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"coupons",
+                localField:"coupon",
+                foreignField:"_id",
+                as:"coupon",
+                pipeline:[
+                    {
+                        $project:{
+                            name:1,
+                            couponCode:1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields:{
+                customer: { $first: "$customer" },
+                address: { $first: "$address" },
+                coupon: { $ifNull: [{ $first: "$coupon" }, null] },
+                totalOrderItems: { $size: "$items" },
+            }
+        },
+        {
+            $project: {
+              items: 0,
+            },
+          },
+    ])
+
+    const orders = await Order.aggregatePaginate(
+        orderAggregate,
+        getMongoosePaginationOptions({
+          page,
+          limit,
+          customLabels: {
+            totalDocs: "totalOrders",
+            docs: "orders",
+          },
+        })
+      );
+    
+      return res
+        .status(200)
+        .json(new ApiResponse(200, orders, "Orders fetched successfully"));
+})
+
+const getAllUser=asyncHandler(async(req, res)=>{
+    const users=await User.find()
+    return res
+              .status(200)
+              .json(new ApiResponse(200, users, "Users fetched successfully"));
+
+})
+
 export {
     registerUser,
     loginInUser,
@@ -519,5 +610,7 @@ export {
     getCurrentUser,
     handlerSocialLogin,
     updateUserAvatar,
-    updateProfile
+    updateProfile,
+    getMyOrder,
+    getAllUser
 }
