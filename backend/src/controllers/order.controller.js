@@ -1,7 +1,7 @@
 import crypto from "crypto"
 import { nanoid } from "nanoid"
 import Razorpay from "razorpay"
-import { PaymentProviderEnum, paypalBaseUrl } from "../constant.js"
+import { PaymentProviderEnum, orderStatusEnum, paypalBaseUrl } from "../constant.js"
 import { Cart } from "../models/cart.models.js";
 import { Order } from "../models/order.models.js";
 import { Product } from "../models/product.models.js";
@@ -311,9 +311,44 @@ const verifyPaypalPayment=asyncHandler(async (req,res)=>{
     }
 })
 
+const updatedOrderStatus=asyncHandler(async (req,res)=>{
+    const {orderId}=req.params;
+    const {status}=req.body;
+
+    let order=await Order.findById(orderId);
+
+    if(!order){
+        throw new ApiError(400, "Order does not exist");
+    }
+    
+    if(order.status === orderStatusEnum.DELIVERED){
+        throw new ApiError(400, "Order is already delivered");
+    }
+    
+    order=await Order.findByIdAndUpdate(
+        orderId,
+        {
+            $set:{
+                status
+            }
+        },
+        {new:true}
+    )
+    return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            status,
+          },
+          "Order status changed successfully"
+        )
+      );
+})
+
 export {
     generateRazorpayOrder,
     verifyRazorpayPayment,
     generatedPaypalOrder,
     verifyPaypalPayment,
+    updatedOrderStatus
 }
