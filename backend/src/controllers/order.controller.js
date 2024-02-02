@@ -91,18 +91,17 @@ const orderFulfillmentHelper = async (orderPaymentId,req)=>{
     return order;
 }
 
-const paypalApi=async (req, res, next)=>{
-    const accessToken=await generatePaypalAccessToken();
-    
+const paypalApi = async (endpoint, body = {}) => {
+    const accessToken = await generatePaypalAccessToken();
     return await fetch(`${paypalBaseUrl.sandbox}/v2/checkout/orders${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(body),
-      });
-}
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+  };
 
 let razorpayInstance;
 
@@ -223,9 +222,98 @@ const verifyRazorpayPayment=asyncHandler(async(req,res)=>{
 
 })
 
+const generatedPaypalOrder=asyncHandler(async (req,res)=>{
+    const {addressId}=req.body;
 
+    const address=await Address.findOne({
+        _id:addressId,
+        owner:req.user._id
+    })
+
+    if(!address){
+        throw new ApiError(400, "Address does not exists");
+    }
+    
+    const cart = await Cart.findOne({
+        owner:req.user._id
+    })
+
+    if(!cart || !cart.items?.length){
+        throw new ApiError(400, "User Cart is empty");
+    }
+    
+    const orderItems=cart.items;
+    const userCart=await getCart(req.user._id);
+
+    const totalPrice=userCart.cartTotal;
+    const totalDiscountedPrice = userCart.discountedTotal;
+
+    const response = await paypalApi("/", {
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            amount: {
+              currency_code: "USD",
+              value: (totalDiscountedPrice * 0.012).toFixed(0), // convert indian rupees to dollars
+            },
+          },
+        ],
+      });
+
+    const paypalOrder=await response.json();
+
+    if(paypalOrder?.id){
+       
+        const unpaidOrder=await Order.create({
+            address:addressId,
+            customer:req.user._id,
+            items:orderItems,
+            orderPrice: totalPrice ?? 0,
+            discountedOrderPrice: totalDiscountedPrice ?? 0,
+            paymentProvider: PaymentProviderEnum.PAYPAL,
+            paymentId: paypalOrder._id,
+            coupon: userCart.coupon?._id,
+        })
+        
+        if(unpaidOrder){
+            return res
+                    .status(200)
+                    .json(
+                        new ApiResponse(200, paypalOrder, "Paypal order generated")
+                    )
+        }
+        
+    }
+
+    console.log(
+        "Make sure you have provided your PAYPAL credentials in the .env file"
+      );
+      throw new ApiError(
+        500,
+        "Something went wrong while initialising the paypal order."
+      );
+})
+
+const verifyPaypalPayment=asyncHandler(async (req,res)=>{
+    const {orderId}=req.body;
+
+    const response = await paypalApi(`/${orderId}/capture`, {});
+    const capturedData = await response.json();
+
+    if(capturedData?.status === "COMPLETED"){
+        const order=await orderFulfillmentHelper(capturedData.id, req);
+
+        return res 
+                .status(200)
+                .json(new ApiResponse(200,order,"Order placed successfully"))
+    }else{
+        throw new ApiError(500, "Something went wrong with the paypal payment");
+    }
+})
 
 export {
     generateRazorpayOrder,
     verifyRazorpayPayment,
+    generatedPaypalOrder,
+    verifyPaypalPayment,
 }
