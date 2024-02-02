@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJWT, verifyPermission } from "../middlewares/auth.middlewares.js";
 import { validate } from "../validators/validate.js";
-import { generateRazorpayOrder, generatedPaypalOrder, getOrderById, updatedOrderStatus, verifyPaypalPayment, verifyRazorpayPayment } from "../controllers/order.controller.js";
+import { generateRazorpayOrder, generatedPaypalOrder, getOrderById, getOrderListAdmin, updatedOrderStatus, verifyPaypalPayment, verifyRazorpayPayment } from "../controllers/order.controller.js";
 import { mongoIdPathVariableValidator, mongoIdRequestBodyValidator } from "../validators/mongodb.validators.js";
 import { orderUpdateStatusValidator, verifyPaypalPaymentValidator, verifyRazorpayPaymentValidator } from "../validators/app/order.validators.js";
 import { userRolesEnum } from "../constant.js";
@@ -25,6 +25,9 @@ router.route("/provider/paypal/verify-payment")
 
 router.route("/:orderId")
                   .get(mongoIdPathVariableValidator("orderId"), validate, getOrderById)
+
+router.route("/list/admin")
+                  .get(verifyPermission([userRolesEnum.ADMIN]), getOrderListAdmin)
 
 router.route("/status/:orderId")
                   .patch(mongoIdPathVariableValidator("orderId"),verifyPermission([userRolesEnum.ADMIN]),orderUpdateStatusValidator(),validate,updatedOrderStatus)
